@@ -14,19 +14,19 @@ def space_str(layer):
 def dic_to_lua_str(data, layer=0):
 
 	d_type = type(data)
-	if d_type is types.StringTypes or d_type is str or d_type is types.UnicodeType:
+	if isinstance(data, str):
 		if data.find("\n") != -1:
 			yield ("[[" + data + "]]")
 		else:
 			yield ("'" + data + "'")
-	elif d_type is types.BooleanType:
+	elif isinstance(data, bool):
 		if data:
 			yield ('true')
 		else:
 			yield ('false')
-	elif d_type is types.IntType or d_type is types.LongType or d_type is types.FloatType:
+	elif isinstance(data, int):
 		yield (str(data))
-	elif d_type is types.ListType:
+	elif isinstance(data, list):
 		yield ("{\n")
 		yield (space_str(layer+1))
 		for i in range(0, len(data)):
@@ -37,7 +37,7 @@ def dic_to_lua_str(data, layer=0):
 		yield ('\n')
 		yield (space_str(layer))
 		yield ('}')
-	elif d_type is types.DictType:
+	elif isinstance(data, dict):
 		yield ("\n")
 		yield (space_str(layer))
 		yield ("{\n")
@@ -47,7 +47,7 @@ def dic_to_lua_str(data, layer=0):
 			data_count += 1
 			yield (space_str(layer+1))
 			# yield ('["' + str(k) + '"]')
-			if type(k) is types.IntType:
+			if isinstance(k, int):
 				yield ('[' + str(k) + ']')
 			else:
 				yield ('["' + k + '"]')
