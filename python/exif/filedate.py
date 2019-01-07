@@ -10,65 +10,63 @@
 import exiftool
 import pprint
 import os
-import datetime
+from datetime import datetime
+import time
 import pytz
 from win32com.propsys import propsys, pscon
 from win32com.shell import shellcon
 import pythoncom
 import win32api
-import dateutil.parser
 
 pp = pprint.PrettyPrinter()
 
-tz = pytz.timezone('Asia/Shanghai')
+cntz = pytz.timezone('Asia/Shanghai')
 
 # e_msg = win32api.FormatMessage(-1072873842,)
 # print(e_msg)
 
 
 def checkfile0(filepath):
-    properties = propsys.SHGetPropertyStoreFromParsingName(
-        filepath, None, shellcon.GPS_READWRITE)
-    dt = properties.GetValue(pscon.PKEY_Media_DateEncoded).GetValue()
-    cdate = datetime.datetime.fromtimestamp(os.path.getctime(filepath))
-    mdate = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
-    value = propsys.PROPVARIANTType(cdate, pythoncom.VT_FILETIME)
-    properties.SetValue(pscon.PKEY_Media_DateEncoded, value)
-    print(dt, cdate, mdate)
-    properties.Commit()
-    
-def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=tz).astimezone(tz=None)
+	properties = propsys.SHGetPropertyStoreFromParsingName(
+		filepath, None, shellcon.GPS_READWRITE)
+	dt = properties.GetValue(pscon.PKEY_Media_DateEncoded).GetValue()
+	cdate = datetime.fromtimestamp(os.path.getctime(filepath))
+	mdate = datetime.fromtimestamp(os.path.getmtime(filepath))
+	value = propsys.PROPVARIANTType(cdate, pythoncom.VT_FILETIME)
+	properties.SetValue(pscon.PKEY_Media_DateEncoded, value)
+	print(dt, cdate, mdate)
+	properties.Commit()
 
-utc_now = tz.localize(datetime.datetime.utcnow())
-datetags = ["QuickTime:CreateDate", "QuickTime:CreationDate", "QuickTime:MediaCreateDate", "QuickTime:TrackCreateDate"]
+utc_now = datetime.utcnow()
+datetags = ["QuickTime:CreateDate",	"QuickTime:MediaCreateDate", "QuickTime:TrackCreateDate"]
+
+
 class DateFixer():
-    def setUp(self):
-        try:
-            self.et = exiftool.ExifTool()
-            self.et.start()
-        except Exception as e:
-            print(e)
+	def setUp(self):
+		try:
+			self.et = exiftool.ExifTool()
+			self.et.start()
+		except Exception as e:
+			print(e)
 
-    def fix_file(self, filepath):
-        print("fix_file", filepath)
-        metadata = self.et.get_metadata(filepath)
-        cdate = utc_now
-        for d in datetags:
-            val = metadata[d]
-            date = dateutil.parser.parse(val)
-            ldate = utc_to_local(date)
-            print(d, val, date)
-            if cdate > ldate:
-                cdate = ldate
-        print(cdate)
+	def fix_file(self, filepath):
+		metadata = self.et.get_metadata(filepath)
+		cdate = datetime.strptime(metadata["QuickTime:CreationDate"], "%Y:%m:%d %H:%M:%S%z")
+		print("fix_file", filepath, metadata, cdate)
+		for i in datetags:
+			args = bytes('-{0}="{1}" {2} -execute'.format(i, cdate, filepath), encoding = "utf-8")
+			print(args)
+			try:
+				self.et.execute(args)
+			except Exception as e:
+				print(e)
 
-    def stop(self):
-        if self.et:
-            self.et.terminate()
+	def stop(self):
+		if self.et:
+			self.et.terminate()
 
 
 df = DateFixer()
 df.setUp()
-df.fix_file(r"C:\Users\luon\Downloads\IMG_0693.MOV")
+df.fix_file(r"IMG_0767.MOV")
 df.stop()
