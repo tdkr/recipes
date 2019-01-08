@@ -51,13 +51,14 @@ class DateFixer():
 
 	def fix_file(self, filepath):
 		metadata = self.et.get_metadata(filepath)
+		print("fix_file", filepath, metadata)
 		cdate = datetime.strptime(metadata["QuickTime:CreationDate"], "%Y:%m:%d %H:%M:%S%z")
-		print("fix_file", filepath, metadata, cdate)
+		cpath = bytes(filepath, encoding = "utf-8")
 		for i in datetags:
-			args = bytes('-{0}="{1}" {2} -execute'.format(i, cdate, filepath), encoding = "utf-8")
-			print(args)
+			args = bytes('-{0}="{1}"'.format(i, cdate), encoding = "utf-8")
 			try:
-				self.et.execute(args)
+				output = self.et.execute(args, cpath)
+				print("output===", output)
 			except Exception as e:
 				print(e)
 
