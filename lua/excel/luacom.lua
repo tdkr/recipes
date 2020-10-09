@@ -139,11 +139,9 @@ local function testSheet(sheet)
 		testInfo.args = convertArgs(testInfo.args);
 		testInfo.ruleArgs = convertRuleArgs(testInfo.ruleArgs);
 		local runningTime = 0
-		print("wangliangtest ************************************************* ",testInfo.times)
 		local code, actualOutput,time
 		for i=1,testInfo.times do
 			 code, actualOutput,time = testScript(testInfo);
-			print("time ************************************************* ",time,actualOutput)
 			runningTime = runningTime + time
 			if code == false then
 				break
@@ -152,7 +150,6 @@ local function testSheet(sheet)
 		local averageTime = runningTime/testInfo.times
 		actualOutput = tostring(actualOutput)
 
-		print(" actualOutput************************************************* ",actualOutput)
 		if code == false then
 			testInfo.result = false;
 		elseif testInfo.expectOutput then
