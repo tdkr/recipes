@@ -11,8 +11,6 @@ import (
 
 type Event struct {
 	id   int32
-	uid  uint64
-	flag int32
 	data interface{}
 }
 
